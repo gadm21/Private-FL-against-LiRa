@@ -1,0 +1,199 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Template for USENIX papers.
+%
+% History:
+%
+% - TEMPLATE for Usenix papers, specifically to meet requirements of
+%   USENIX '05. originally a template for producing IEEE-format
+%   articles using LaTeX. written by Matthew Ward, CS Department,
+%   Worcester Polytechnic Institute. adapted by David Beazley for his
+%   excellent SWIG paper in Proceedings, Tcl 96. turned into a
+%   smartass generic template by De Clarke, with thanks to both the
+%   above pioneers. Use at your own risk. Complaints to /dev/null.
+%   Make it two column with no page numbering, default is 10 point.
+%
+% - Munged by Fred Douglis <douglis@research.att.com> 10/97 to
+%   separate the .sty file from the LaTeX source template, so that
+%   people can more easily include the .sty file into an existing
+%   document. Also changed to more closely follow the style guidelines
+%   as represented by the Word sample file.
+%
+% - Note that since 2010, USENIX does not require endnotes. If you
+%   want foot of page notes, don't include the endnotes package in the
+%   usepackage command, below.
+% - This version uses the latex2e styles, not the very ancient 2.09
+%   stuff.
+%
+% - Updated July 2018: Text block size changed from 6.5" to 7"
+%
+% - Updated Dec 2018 for ATC'19:
+%
+%   * Revised text to pass HotCRP's auto-formatting check, with
+%     hotcrp.settings.submission_form.body_font_size=10pt, and
+%     hotcrp.settings.submission_form.line_height=12pt
+%
+%   * Switched from \endnote-s to \footnote-s to match Usenix's policy.
+%
+%   * \section* => \begin{abstract} ... \end{abstract}
+%
+%   * Make template self-contained in terms of bibtex entires, to allow
+%     this file to be compiled. (And changing refs style to 'plain'.)
+%
+%   * Make template self-contained in terms of figures, to
+%     allow this file to be compiled. 
+%
+%   * Added packages for hyperref, embedding fonts, and improving
+%     appearance.
+%   
+%   * Removed outdated text.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[letterpaper,twocolumn,10pt]{article}
+% \usepackage{usenix2019_v3}
+\usepackage{usenix-2020-09}
+
+% to be able to draw some self-contained figs
+\usepackage{tikz}
+\usepackage{amsmath}
+
+
+
+%-------------------------------------------------------------------------------
+\begin{document}
+%-------------------------------------------------------------------------------
+
+%don't want date printed
+\date{}
+
+% make title bold and 14 pt font (Latex default is non-bold, 16 pt)
+\title{\Large \bf Evaluating Privacy Leakage of Likelihood Ratio Inference Attack on Federated Learning Algorithms and Defense Mechanisms}
+
+%for single author (just remove % characters)
+\author{
+{\rm Gad Gad}\\
+Your Institution
+\and
+{\rm Zubair Md. Fadlullah}\\
+Second Institution
+% copy the following lines to add more authors
+\and
+{\rm Mostafa M. Fouda}\\
+Name Institution
+} % end author
+
+\maketitle
+
+%-------------------------------------------------------------------------------
+\begin{abstract}
+%-------------------------------------------------------------------------------
+Federated learning (FL), as a type of distributed machine learning, is capable of significantly preserving clients’ private data from being exposed to adversaries. Nevertheless, private information can still be divulged by adversaries by analyzing model updates. For instance, in Membership Inference Attack (MIA) allows an adversary to query a trained machine-learning model to predict whether or not a particular example was contained in the model’s training dataset. To protect against privacy attacks, Differential Privacy (DP) is used as a privacy notion to provide a formal guarantee on the upper bound of information leakage of a trained model in terms of a privacy budget $\epsilon$ that provides only a relative privacy measure with respect to non-private models. Moreover, since noise addition by DP severely impacts utility, relaxed definitions of DP are often used to provide tighter privacy analysis, adding less noise to achieve the same privacy budget. However, little understanding of the privacy-utility tradeoff and lacking meaningful privacy measures tempt DP implementations to choose large $\epsilon$ to preserve acceptable task utility. We quantify the privacy leakage of the Likelihood Ratio Inference Attack (LiRA) against FL trained models by computing true-positive rate at low false-positive rate. We study the relationship between the attack success rate and the privacy protection level of two DP notations.  
+\end{abstract}
+
+
+%-------------------------------------------------------------------------------
+\section{Introduction}
+%-------------------------------------------------------------------------------
+
+Emerging as a compelling paradigm, Federated Learning (FL) endorses a cooperative, distributed machine learning strategy that offers a robust privacy protection mechanism, facilitating training without the need for raw data exchange across clients. Notwithstanding, FL is not immune to privacy invasion as the model updates can be exploited to deduce information, highlighting potential susceptibility to attacks like Membership Inference Attacks (MIA).
+
+MIA represents a form of cyber threat wherein an adversary can deduce whether specific inputs were part of a model's training dataset, a fact which underlines the persistent need for rigorous privacy measures. Recognizing this, Differential Privacy (DP), a principled privacy-preserving methodology, is commonly deployed in the context of FL. It curtails the risk of privacy breaches by introducing calibrated randomness in the model's learning process. DP hinges on a parameter, ε, known as the 'privacy budget', which serves as an indicator of the maximum permissible privacy loss.
+
+However, the integration of DP in FL is not devoid of challenges. One primary concern is the adverse effect of the DP-introduced noise on model performance, which can compromise the accuracy of the model. Consequently, researchers are exploring relaxed versions of DP such as standard DP, formally (epsilon, delta)-DP, and Rényi Differential Privacy (RDP). These relaxations allow for a more focused privacy analysis while introducing less noise to maintain equivalent privacy levels.
+
+Still, existing challenges include comprehending the privacy-utility tradeoff in FL and quantifying the real-world privacy leakage. Our research is designed to address these gaps, focusing on the privacy leakage measurement in FL models under the Likelihood Ratio Inference Attack (LiRA), a potent form of MIA. We also study the relationship between the success rate of an attack and the privacy protection level provided by (epsilon, delta)-DP and RDP.
+
+Simultaneously, we evaluate the three distinct types of MIAs: Blackbox MIA, Whitebox MIA, and LiRA across various training paradigms - centralized training, model-based federated learning, and knowledge distillation-based federated learning. Through these comprehensive evaluations, we aspire to enhance the understanding of the privacy-utility balance in FL, paving the way for the development of robust privacy-preserving mechanisms.
+
+This paper is structured as follows: Section 2 presents a survey of related works in federated learning, privacy attacks, and differential privacy. Section 3 outlines the methodology and experimental setup we used in our research. In Section 4, we report the results of our experiments, focusing on privacy leakage and the privacy-utility trade-off. Section 5 discusses our findings' implications and the limitations of our study. Finally, Section 6 concludes the paper and suggests potential areas for future research in privacy-conscious federated learning.
+
+%-------------------------------------------------------------------------------
+\section{Background}
+%-------------------------------------------------------------------------------
+This section provides a comprehensive overview of literature work on the key concepts relevant to our work. 
+
+\subsection{Federated Learning}
+
+A potent stride in the space of distributed machine learning is embodied in the form of Federated Learning. A distinctive characteristic of FL is its ability to enable model training across a multitude of decentralized nodes, or 'clients,' each equipped with its unique dataset. What sets FL apart from conventional distributed learning methodologies is the way it navigates the training process. Conventionally, data from individual nodes would be combined into a central repository where the model learns and evolves. However, this method invites data privacy concerns and a considerable overhead in terms of data communication.
+
+FL flips this traditional approach on its head by avoiding raw data exchange between nodes. Instead, each client runs the model independently on their local data, and the model parameters or 'updates' are then shared with a central server. These individual updates from various clients are aggregated on this central server to form a global model update, which is then disseminated back to the clients. Consequently, FL offers a unique advantage: It retains the computational benefits of distributed learning while considerably enhancing data privacy and reducing the bandwidth required for data transmission. This distinctive paradigm has generated considerable interest among researchers and practitioners in recent years, making it an intriguing subject to delve deeper into and scrutinize its vulnerabilities.
+
+\subsection{Privacy Attacks}
+
+Even with the enhanced privacy measures offered by FL, the realm of machine learning is far from invulnerable to privacy breaches. Privacy attacks, in particular, have been a focal point of concern. Of these attacks, Membership Inference Attacks (MIA) have drawn significant attention. Under an MIA, an attacker, or 'adversary,' seeks to infer whether a particular data point was part of the training dataset used to train the machine learning model.
+
+What makes MIAs particularly disconcerting is their effectiveness against a wide range of models, including those trained under the FL paradigm. Given that FL’s raison d'être is to bolster data privacy, the susceptibility of FL models to MIAs is of grave concern. Therefore, it is incumbent upon researchers to delve into the intricacies of these attacks, their modus operandi, and their potential impacts.
+
+In this paper, we have taken a keen interest in the Likelihood Ratio Inference Attack (LiRA), an advanced form of MIA. LiRA exploits statistical nuances within the model's predictions, making it a significant threat to data privacy. Moreover, we explore the impact of different types of MIAs, namely Blackbox MIA, Whitebox MIA, and LiRA, across various training paradigms, including centralized training, model-based FL, and knowledge distillation-based FL. Each MIA and training paradigm presents a unique set of challenges, thereby making the analysis even more complex and intriguing.
+
+\subsection{Differential Privacy}
+
+As researchers grapple with the privacy threats posed by attacks such as MIA, a potential solution emerges in the form of Differential Privacy. This mathematical framework serves to quantify the privacy afforded by an algorithm, thus providing a measurable standard for privacy protection.
+
+The crux of DP lies in the deliberate introduction of calibrated noise during computational processes. By doing so, DP ensures that the result of a computation remains virtually unaffected, regardless of whether an individual data record is included in the input dataset. This introduces a level of indistinguishability that serves as a privacy buffer, making it significantly harder for attackers to link outputs back to individual inputs.
+
+While DP offers a rigorousprivacy assurance, it doesn't come without its set of challenges. One of the key struggles is managing the inherent trade-off between the level of privacy protection and the utility of the machine learning model, often referred to as the privacy-utility trade-off. In essence, increasing privacy protection through noise addition can adversely impact the performance or 'utility' of the machine learning model.
+
+This delicate balance between privacy and utility necessitates a deep understanding of the underlying mechanics and implications of DP. To alleviate the deleterious impact of noise addition on model performance, relaxed versions of DP, such as (epsilon, delta)-Differential Privacy ((ε, δ)-DP) and Rényi Differential Privacy (RDP), have been introduced. These relaxed versions aim to conduct a more granular privacy analysis while curtailing the degradation in utility that standard DP might cause. The degree of privacy protection under these relaxed DP methods is primarily governed by the privacy parameter ε, also known as the 'privacy budget.' By adjusting ε, one can control the extent of noise added to the data, thereby managing the privacy-utility trade-off.
+
+In our study, we engage with these relaxed versions of DP, particularly (ε, δ)-DP and RDP, exploring their implications in the context of FL. Our research takes into account the intricate relationship between the privacy protection level offered by these DP mechanisms and the success rate of an attack. The objective is to better comprehend the privacy leakage in FL models under the LiRA, shedding light on potential avenues for bolstering privacy protection in this realm.
+
+In conclusion, Federated Learning, privacy attacks like MIAs, and Differential Privacy collectively form a complex web of interconnected themes that underpin our research. By dissecting these concepts, we hope to arrive at a nuanced understanding of the privacy challenges in FL and contribute to the development of robust, privacy-preserving mechanisms in distributed machine learning.
+
+
+%-------------------------------------------------------------------------------
+\section{Federated Learning}
+\label{sec:fl}
+%-------------------------------------------------------------------------------
+\subsection{Model-based Federated Learning}
+
+\subsection{Knowledge Distillation-based Federated Learning}
+
+
+
+
+\section{Membership Inference Attacks on Machine Learning Models}
+\label{sec:mia}
+
+\subsection{Other Inference Attacks}
+\subsection{Evaluating Membership Inference Attacks}
+
+\section{Differential Privacy}
+\label{sec:dp}
+%-----------------------------------
+
+\subsection{Relaxed Definitions of Differential Privacy}
+
+\subsection{Differential Privacy for Machine Learning}
+
+
+\section{Experimental Setup}
+\section{Results}
+\section{Discussion}
+\section{Conclusion}
+%-------------------------------------------------------------------------------
+\section*{Acknowledgments}
+%-------------------------------------------------------------------------------
+
+The USENIX latex style is old and very tired, which is why
+there's no \textbackslash{}acks command for you to use when
+acknowledging. Sorry.
+
+%-------------------------------------------------------------------------------
+\section*{Availability}
+%-------------------------------------------------------------------------------
+
+The code for the simulations in this paper can be accessed at https://github.com/gadm21/Private-FL-against-LiRa. The datasets used in the simulation are publicly available. 
+
+
+%-------------------------------------------------------------------------------
+\bibliographystyle{plain}
+\bibliography{refs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%  LocalWords:  endnotes includegraphics fread ptr nobj noindent
+%%  LocalWords:  pdflatex acks
+
