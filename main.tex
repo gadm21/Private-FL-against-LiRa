@@ -146,8 +146,10 @@ In conclusion, Federated Learning, privacy attacks like MIAs, and Differential P
 \label{sec:fl}
 %-------------------------------------------------------------------------------
 \subsection{Model-based Federated Learning}
+\label{sec:mbfl}
 
 \subsection{Knowledge Distillation-based Federated Learning}
+\label{sec:kdfl}
 
 
 
@@ -155,24 +157,96 @@ In conclusion, Federated Learning, privacy attacks like MIAs, and Differential P
 \section{Membership Inference Attacks on Machine Learning Models}
 \label{sec:mia}
 
+\subsection{Blackbox Membership Inference Attacks}
+\label{sec:blackboxmia}
+
+\subsection{Whitebox Membership Inference Attacks}
+\label{sec:whiteboxmia}
+
+\subsection{Likelihood Ratio Inference Attacks}
+\label{sec:lira}
+
+
 \subsection{Other Inference Attacks}
+\label{sec:othermia}
+
 \subsection{Evaluating Membership Inference Attacks}
+\label{sec:evalmia}
+
+
 
 \section{Differential Privacy}
 \label{sec:dp}
 %-----------------------------------
 
 \subsection{Relaxed Definitions of Differential Privacy}
+\label{sec:relaxeddp}
+
+
+
+
+\subsubsection{(epsilon, delta)-Differential Privacy}
+\label{sec:eddp}
+
+The formal definition of DP is as follows:
+A random mechanism $\mathcal{M}$ is said to be $\epsilon$-differentially private if for all pairs of neighboring datasets $D$ and $D'$, and for all $S \subseteq Range(\mathcal{M})$,
+\begin{equation}
+    Pr[\mathcal{M}(D) \in S] \leq e^{\epsilon} Pr[\mathcal{M}(D') \in S]
+\end{equation}
+    
+    where $Range(\mathcal{M})$ is the set of all possible outputs of $\mathcal{M}$.
+
+
+\subsubsection{Renyi Differential Privacy}
+\label{sec:rdp}
+
+The formal definition of RDP is as follows:
+A random mechanism $\mathcal{M}$ is said to be $(\epsilon)$-Renyi differentially private with order $\alpha$ if for all pairs of neighboring datasets $D$ and $D'$, it holds that
+\begin{equation}
+    D_{\alpha}(\mathcal{M}(D) || \mathcal{M}(D')) \leq \epsilon
+\end{equation}
+    
+    where $D_{\alpha}(\mathcal{M}(D) || \mathcal{M}(D'))$ is the Renyi divergence of order $\alpha$ between the output distributions of $\mathcal{M}$ on $D$ and $D'$, and is defined as:
+    
+    \begin{equation}
+        D_{\alpha}(\mathcal{M}(D) || \mathcal{M}(D')) = \frac{1}{\alpha - 1} \log \mathbb{E}_{x \sim \mathcal{M}(D)} \left[ \left( \frac{\mathcal{M}(D')}{\mathcal{M}(D)} \right)^{\alpha - 1} \right]
+    \end{equation}
+        
+        where $\mathbb{E}_{x \sim \mathcal{M}(D)}$ denotes the expectation over the random variable $x$ drawn from the distribution $\mathcal{M}(D)$.
+
+        
+
+    
+\begin{equation}
+    Pr[\mathcal{M}(D) \in S] \leq e^{\epsilon} Pr[\mathcal{M}(D') \in S]
+\end{equation}
+    
+    where $Range(\mathcal{M})$ is the set of all possible outputs of $\mathcal{M}$.
+
+
+
+
 
 \subsection{Differential Privacy for Machine Learning}
+\label{sec:dpml}
 
 
 \section{Experimental Setup}
+\label{sec:exp}
+
+
 \section{Results}
+\label{sec:results}
+
 \section{Discussion}
+\label{sec:discussion}
+
 \section{Conclusion}
+\label{sec:conclusion}
+
 %-------------------------------------------------------------------------------
 \section*{Acknowledgments}
+
 %-------------------------------------------------------------------------------
 
 The USENIX latex style is old and very tired, which is why
