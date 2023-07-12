@@ -29,14 +29,12 @@ class FedSGD :
         self.test_data = test_data
         self.server_model = initial_model
         # clone initial model to all clients
-        self.clients_models = [clone_model(initial_model) for _ in range(len(clients_data))]
-        for model in self.clients_models :
-            model.compile(
-                loss=tf.keras.losses.categorical_crossentropy,
-                optimizer="adam",
-                metrics=['accuracy']
-            )
-        self.loss, self.accuracy = [], [] 
+        self.clients_models = []
+        for c in range(len(clients_data) ) : 
+            model = clone_model(initial_model)
+            model = compile_model(model, args) 
+            self.clients_models.append(model)
+        self.losses, self.accs = [], [] 
     
     def run(self, rounds, local_epochs = 1) : 
         for r in range(rounds) : 
@@ -48,6 +46,13 @@ class FedSGD :
                 delta_agg = new_aggregate(deltas)
                 self.update_server_model(delta_agg)
             self.test()
+            if len(self.accs ) > 11: 
+                # check if accuracy is not improving
+                if np.mean(np.subtract(self.accs[-10:], self.accs[-11:-1])) < 0.01:
+                    print("Breaking the training loop as I am not improving anymore :(")
+                    break
+
+            
     
     def download_server_model(self, client_id) :
         self.clients_models[client_id].set_weights(self.server_model.get_weights())
@@ -70,24 +75,24 @@ class FedSGD :
 
     def test(self) :
         score = test_keras_model(self.server_model, self.test_data, verbose=0)
-        self.loss.append(score[0])
-        self.accuracy.append(score[1])
+        self.losses.append(score[0])
+        self.accs.append(score[1])
 
 
     def save_scores(self) : 
         acc_path = join(self.exp_path, 'accuracy' + '.npy')
         loss_path = join(self.exp_path, 'loss' + '.npy')
-        np.save(acc_path, self.accuracy)
-        np.save(loss_path, self.loss)
+        np.save(acc_path, self.accs)
+        np.save(loss_path, self.losses)
     
     def load_scores(self) :
         accuracy_path = join(self.exp_path, 'accuracy' + '.npy')
         loss_path = join(self.exp_path, 'loss' + '.npy')
-        self.accuracy = np.load(accuracy_path)
-        self.loss = np.load(loss_path)
+        self.accs = np.load(accuracy_path)
+        self.losses = np.load(loss_path)
 
     def plot_accuracy(self) :
-        plt.plot(self.accuracy)
+        plt.plot(self.accs)
         plt.show()
     
     def plot_loss(self) :
@@ -112,7 +117,7 @@ class FedAvg :
             model = clone_model(initial_model)
             model = compile_model(model, args) 
             self.clients_models.append(model)
-        self.loss, self.accuracy = [], []
+        self.losses, self.accs = [], []
 
     def run(self, rounds, local_epochs = 1) :
         for r in range(rounds) : 
@@ -125,6 +130,13 @@ class FedAvg :
             self.update_server_model(weights_agg)
             acc = self.test()
             print("FedAvg round {}, accuracy:{} ".format(r, acc))
+            if len(self.accs ) > 11: 
+                # check if accuracy is not improving
+                if np.mean(np.subtract(self.accs[-10:], self.accs[-11:-1])) < 0.01:
+                    print("Breaking the training loop as I am not improving anymore :(")
+                    break
+
+            
 
     def download_server_model(self, client_id) :
         self.clients_models[client_id].set_weights(self.server_model.get_weights())
@@ -144,29 +156,29 @@ class FedAvg :
    
     def test(self) :
         score = test_keras_model(self.server_model, self.test_data, verbose=0)
-        self.loss.append(score[0])
-        self.accuracy.append(score[1])
+        self.losses.append(score[0])
+        self.accs.append(score[1])
         return score[1]
 
 
     def save_scores(self) : 
         acc_path = join(self.exp_path, 'accuracy' + '.npy')
         loss_path = join(self.exp_path, 'loss' + '.npy')
-        np.save(acc_path, self.accuracy)
-        np.save(loss_path, self.loss)
+        np.save(acc_path, self.accs)
+        np.save(loss_path, self.losses)
     
     def load_scores(self) :
         accuracy_path = join(self.exp_path, 'accuracy' + '.npy')
         loss_path = join(self.exp_path, 'loss' + '.npy')
-        self.accuracy = np.load(accuracy_path)
-        self.loss = np.load(loss_path)
+        self.accs = np.load(accuracy_path)
+        self.losses = np.load(loss_path)
 
     def plot_accuracy(self) :
-        plt.plot(self.accuracy)
+        plt.plot(self.accs)
         plt.show()
     
     def plot_loss(self) :
-        plt.plot(self.loss)
+        plt.plot(self.losses)
         plt.show()
 
 
@@ -187,7 +199,7 @@ class FedProx :
         self.clients_models = [clone_model(initial_model) for _ in range(len(clients_data))]
         # for model in self.clients_models :
         #     model = compile_model(model, args)
-        self.loss, self.accuracy = [], []
+        self.losses, self.accs = [], []
         self.mu = args.mu
 
 
@@ -206,7 +218,13 @@ class FedProx :
             weights_agg = new_aggregate(weights)
             self.update_server_model(weights_agg)
             self.test()
+            if len(self.accs ) > 11: 
+                # check if accuracy is not improving
+                if np.mean(np.subtract(self.accs[-10:], self.accs[-11:-1])) < 0.01:
+                    print("Breaking the training loop as I am not improving anymore :(")
+                    break
 
+            
 
     def create_fedprox_loss(self, c, round_initial_weights, mu, reduce_mean = True):
         def fedprox_loss_fn(output, target):
@@ -247,28 +265,28 @@ class FedProx :
 
     def test(self) :
         score = test_keras_model(self.server_model, self.test_data, verbose=0)
-        self.loss.append(score[0])
-        self.accuracy.append(score[1])
+        self.losses.append(score[0])
+        self.accs.append(score[1])
 
 
     def save_scores(self) : 
         acc_path = join(self.exp_path, 'accuracy' + '.npy')
         loss_path = join(self.exp_path, 'loss' + '.npy')
-        np.save(acc_path, self.accuracy)
-        np.save(loss_path, self.loss)
+        np.save(acc_path, self.accs)
+        np.save(loss_path, self.losses)
     
     def load_scores(self) :
         accuracy_path = join(self.exp_path, 'accuracy' + '.npy')
         loss_path = join(self.exp_path, 'loss' + '.npy')
-        self.accuracy = np.load(accuracy_path)
-        self.loss = np.load(loss_path)
+        self.accs = np.load(accuracy_path)
+        self.losses = np.load(loss_path)
 
     def plot_accuracy(self) :
-        plt.plot(self.accuracy)
+        plt.plot(self.accs)
         plt.show()
     
     def plot_loss(self) :
-        plt.plot(self.loss)
+        plt.plot(self.losses)
         plt.show()
 
 
@@ -341,6 +359,12 @@ class FedAKD:
             
             kd_acc = self.test()
             print("Fedakd round {}, before KD accuracy:{}, after KD accuracy:{}".format(r, l_acc, kd_acc))
+
+            if len(self.accs ) > 11: 
+                # check if accuracy is not improving
+                if np.mean(np.subtract(self.accs[-10:], self.accs[-11:-1])) < 0.01:
+                    print("Breaking the training loop as I am not improving anymore :(")
+                    break
 
             
 

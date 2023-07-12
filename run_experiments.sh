@@ -3,15 +3,14 @@
 #!/bin/bash 
 
 echo "Starting script" 
-if [ "$#" -lt 2 ]; then # exit if called with no arguments 
-    # echo "Usage: bash $0 <DATASET NAME> <CONDA ENVIRONMENT NAME>"
-    echo "Usage: bash $0 <DATASET NAME> <CONDA ENVIRONMENT NAME>"
+if [ "$#" -lt 1 ]; then # exit if called with no arguments 
+    echo "Usage: bash $0  <CONDA ENVIRONMENT NAME>"
     exit 1
 fi 
 
-DATASET=$1
+
 CONDA_ENV_DIR="/Users/gadmohamed/miniforge3/envs"
-CONDA_ENV="$CONDA_ENV_DIR/$2"
+CONDA_ENV="$CONDA_ENV_DIR/$1"
 
 CODE_PATH="src/main.py"
 
@@ -32,11 +31,37 @@ conda activate $CONDA_ENV
 
 echo "Begin experiments!" 
 echo "Code path: $CODE_PATH"
-echo "Dataset: $DATASET"
+
 echo "Conda environment: $CONDA_ENV"
 
 
 
+datasets=("cifar10" "mnist")
+learning_algorithms=("local" "central" "fedsgd" "fedavg" "fedakd")
+dp_types=("dp" "adv_cmp" "rdp")
+dp_epsilon_values=(0.1 1 10 100 1000 2000)
+learning_rates=(0.1 0.01 0.001)
+
+# private learning
+for dataset in "${datasets[@]}"; do
+    for learning_algorithm in "${learning_algorithms[@]}"; do
+        for dp_type in "${dp_types[@]}"; do
+            for dp_epsilon in "${dp_epsilon_values[@]}"; do
+                for learning_rate in "${learning_rates[@]}"; do
+                    python "$CODE_PATH" "$dataset" --learning_algorithm "$learning_algorithm" --use_dp --rounds 40 --local_epochs 1 --target_model='nn' --dp_epsilon $dp_epsilon --dp_type $dp_type --lr $learning_rate
+                done
+            done
+        done
+    done
+done
+
+# Non private learning
+for dataset in "${datasets[@]}"; do
+    for learning_algorithm in "${learning_algorithms[@]}"; do
+        python "$CODE_PATH" "$dataset" --learning_algorithm "$learning_algorithm" --rounds 40 --local_epochs 1 --target_model='nn' --lr 0.01
+        python "$CODE_PATH" "$dataset" --learning_algorithm "$learning_algorithm" --rounds 40 --local_epochs 1 --target_model='nn' --lr 0.001
+    done
+done
 
 
 # python $CODE_PATH $DATASET --learning_algorithm 'fedprox' --rounds 10  --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'dp'
@@ -49,65 +74,65 @@ echo "Conda environment: $CONDA_ENV"
 # python $CODE_PATH $DATASET --learning_algorithm 'local' --local_epochs 40  --use_dp --target_model='nn'  --dp_epsilon 100 --dp_type 'dp'
 # python $CODE_PATH $DATASET --learning_algorithm 'local' --local_epochs 40  --use_dp --lr 0.1 --target_model='nn' --dp_epsilon 100 --dp_type 'dp'
 
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.1
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.1
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.1
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.1
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'rdp' --lr 0.1
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.1
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.1
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'rdp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.1
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.1
 
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg'  --rounds 20  --local_epochs 1  --target_model='nn' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg'  --rounds 20  --local_epochs 1  --target_model='nn' --lr 0.001
-python $CODE_PATH $DATASET --learning_algorithm 'fedavg'  --rounds 20  --local_epochs 1  --target_model='nn' --lr 0.0001
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg' --use_dp --rounds 20 --local_epochs 1 --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg'  --rounds 20  --local_epochs 1  --target_model='nn' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg'  --rounds 20  --local_epochs 1  --target_model='nn' --lr 0.001
+# python $CODE_PATH $DATASET --learning_algorithm 'fedavg'  --rounds 20  --local_epochs 1  --target_model='nn' --lr 0.0001
 
 
 
-python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.01
 
-python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.001
-python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.001
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.001
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.001
+# python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.001
+# python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.001
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.001
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.001
 
-python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --lr 0.01
-python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --lr 0.01
+# python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.01
 
-python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --lr 0.001
-python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.001
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.001
-python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.001
+# python $CODE_PATH $DATASET --id 10 --learning_algorithm 'central' --local_epochs 20  --target_model='nn' --lr 0.001
+# python $CODE_PATH $DATASET --id 11 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.001
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.001
+# python $CODE_PATH $DATASET --id 12 --learning_algorithm 'central' --use_dp --local_epochs 20  --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.001
 
 
 # python $CODE_PATH $DATASET --learning_algorithm 'central' --use_dp  --local_epochs 10  --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.001
 # python $CODE_PATH $DATASET --learning_algorithm 'central' --local_epochs 10  --target_model='nn' 
 
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1  --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1  --lr 0.001
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --rounds 30 --local_epochs 1  --target_model='nn' --dp_epsilon 1  --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1  --lr 0.001
 
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 10 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1000 --dp_type 'dp' --lr 0.01
 
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.01
-python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 10 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.01
+# python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 20 --local_epochs 1  --target_model='nn' --dp_epsilon 1000 --dp_type 'rdp' --lr 0.01
 # python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 100 --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'rdp' --lr 0.01
 # python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --use_dp --rounds 100 --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'dp' --lr 0.01
 # python $CODE_PATH $DATASET --learning_algorithm 'fedakd' --rounds 20 --local_epochs 1  --target_model='nn' 

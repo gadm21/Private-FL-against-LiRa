@@ -343,7 +343,7 @@ def compile_model(model, args, loss_fn = None) :
             dp_type = args.dp_type
         )
         sigma = ac.get_noise_multiplier(target_epsilon=args.dp_epsilon)
-        
+        args.sigma = sigma
         print("sigma : ", sigma)
         opt = DPKerasSGDOptimizer(
                     l2_norm_clip=args.dp_norm_clip,
@@ -357,6 +357,7 @@ def compile_model(model, args, loss_fn = None) :
             loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True, reduction=tf.losses.Reduction.NONE)
 
     else : 
+        args.sigma = 0
         opt = "adam"
         if loss_fn is not None :
             loss = loss_fn

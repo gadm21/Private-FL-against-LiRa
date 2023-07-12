@@ -17,8 +17,6 @@ def run_experiment(id, args) :
     experiment_dir = join(RESULTS_PATH, id)
     if not os.path.exists(experiment_dir):
         os.makedirs(experiment_dir)
-    with open(join(experiment_dir, 'args.json'), 'w') as f:
-        json.dump(vars(args), f)
 
     train_data, test_data, metadata = get_data(args.dataset)
     args = update_args_with_dict(args, metadata)
@@ -43,7 +41,7 @@ def run_experiment(id, args) :
             'lr_reduction_patience' : args.lr_reduction_patience,
             'csv_logger_path' : join(experiment_dir, 'centralized.csv')
         }
-        history = train_keras_model(centralized_model, train_data, test_data, epochs=args.local_epochs, batch_size = args.batch_size, verbose=1, **callbacks)
+        history = train_keras_model(centralized_model, train_data, test_data, epochs=args.rounds, batch_size = args.batch_size, verbose=1, **callbacks)
 
 
     # ___________________________________________________________________________________________________
@@ -59,11 +57,10 @@ def run_experiment(id, args) :
                 'lr_reduction_patience' : args.lr_reduction_patience,
                 'csv_logger_path' : join(experiment_dir, f'client_{client_id}.csv')
             }
-            history = train_keras_model(client_model, clients_data[client_id], test_data, epochs=args.local_epochs, batch_size = args.batch_size, verbose=0, **callbacks)
+            history = train_keras_model(client_model, clients_data[client_id], test_data, epochs=args.rounds, batch_size = args.batch_size, verbose=0, **callbacks)
         
     # ___________________________________________________________________________________________________
     elif 'fed' in args.learning_algorithm :
-        print("Running federated training")
 
         centralized_data, clients_data, external_data = split_data(train_data, args.num_clients, args.local_size)
         if args.learning_algorithm == 'fedavg' :
@@ -85,7 +82,7 @@ def run_experiment(id, args) :
                                             args = args)
 
         elif args.learning_algorithm == 'fedsgd' : 
-            initial_model = create_model_based_on_data(args, compile_model = True)
+            initial_model = create_model_based_on_data(args, compile_model = False)
             learning_algorithm = FedSGD(exp_path = experiment_dir,
                                         clients_data = clients_data,
                                         test_data = test_data,
@@ -119,6 +116,9 @@ def run_experiment(id, args) :
     # ___________________________________________________________________________________________________
     else :
         raise ValueError('Invalid learning algorithm')
+
+    with open(join(experiment_dir, 'args.json'), 'w') as f:
+        json.dump(vars(args), f)
 
 
 
