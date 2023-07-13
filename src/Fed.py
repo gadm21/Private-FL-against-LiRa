@@ -13,6 +13,16 @@ def new_aggregate(weights) :
 
     return avg_weights
 
+
+def new_subtract(weights1, weights2) :
+    delta_weights = []
+    for layer_id in range(len(weights1)) : 
+        delta_layer = weights1[layer_id] - weights2[layer_id]
+        delta_weights.append(delta_layer)
+    return delta_weights
+
+
+
 def subtract_weights(weights1, weights2) :
     delta_weights = []
     for layer_id in range(len(weights1)) : 
@@ -42,10 +52,13 @@ class FedSGD :
             deltas = []
             for c in range(len(self.clients_data)) : 
                 self.download_server_model(c)
+                
+                self.test()
                 deltas.append(self.local_train(c, local_epochs))
                 delta_agg = new_aggregate(deltas)
+                delta_agg = new_subtract(self.server_model.get_weights(), delta_agg)
+
                 self.update_server_model(delta_agg)
-            self.test()
             if len(self.accs ) > 11: 
                 # check if accuracy is not improving
                 if np.mean(np.subtract(self.accs[-10:], self.accs[-11:-1])) < 0.01:
@@ -56,13 +69,15 @@ class FedSGD :
     
     def download_server_model(self, client_id) :
         self.clients_models[client_id].set_weights(self.server_model.get_weights())
-    
+
+ 
     def update_server_model(self, delta_agg) :
-        new_weights = np.array(self.server_model.get_weights()) - delta_agg
+        new_weights = subtract_weights(self.server_model.get_weights(), delta_agg)
         self.server_model.set_weights(new_weights)
 
     def local_train(self, client_id, local_epochs) :
         weights0 = self.clients_models[client_id].get_weights()
+        self.clients_models[client_id] = compile_model(self.clients_models[client_id], self.args)
         train_keras_model(self.clients_models[client_id], self.clients_data[client_id], self.test_data, epochs=local_epochs, verbose=0)
         # delta = np.array(weights0) - np.array(self.clients_models[client_id].get_weights())
         delta = subtract_weights(weights0, self.clients_models[client_id].get_weights())
@@ -74,9 +89,11 @@ class FedSGD :
         return avg_delta
 
     def test(self) :
+        self.server_model = compile_model(self.server_model, self.args)
         score = test_keras_model(self.server_model, self.test_data, verbose=0)
         self.losses.append(score[0])
         self.accs.append(score[1])
+        return score
 
 
     def save_scores(self) : 
@@ -128,7 +145,7 @@ class FedAvg :
 
             weights_agg = new_aggregate(weights)
             self.update_server_model(weights_agg)
-            acc = self.test()
+            loss, acc = self.test()
             print("FedAvg round {}, accuracy:{} ".format(r, acc))
             if len(self.accs ) > 11: 
                 # check if accuracy is not improving
@@ -158,7 +175,7 @@ class FedAvg :
         score = test_keras_model(self.server_model, self.test_data, verbose=0)
         self.losses.append(score[0])
         self.accs.append(score[1])
-        return score[1]
+        return score[0], score[1]
 
 
     def save_scores(self) : 
@@ -267,6 +284,7 @@ class FedProx :
         score = test_keras_model(self.server_model, self.test_data, verbose=0)
         self.losses.append(score[0])
         self.accs.append(score[1])
+        return score[0], score[1]
 
 
     def save_scores(self) : 
@@ -307,8 +325,8 @@ class FedAKD:
         self.clients_models = []
         self.smoothed_clients_models = [] 
 
-        self.global_loss, self.local_loss = [], []
-        self.global_accuracy, self.local_accuracy = [], []
+        self.losses, self.local_loss = [], []
+        self.accs, self.local_accuracy = [], []
         
         for id in range(len(clients_data)):
             args.client_id = id
@@ -345,7 +363,6 @@ class FedAKD:
                 t_smoothed_labels = t_model.predict(mixup_proxy_data)
                 all_soft_labels.append(t_smoothed_labels)
 
-            loss, l_acc = self.test()
 
             # 4. Aggregate the temperature smoothed labels
             aggregated_soft_labels = np.mean(all_soft_labels, axis=0)
@@ -358,15 +375,15 @@ class FedAKD:
                 self.clients_models[c].set_weights(self.smoothed_clients_models[c].get_weights())
             
             kd_acc = self.test()
-            print("Fedakd round {}, before KD accuracy:{}, after KD accuracy:{}".format(r, l_acc, kd_acc))
+            print("KD accuracy : ", kd_acc)
 
             if len(self.accs ) > 11: 
                 # check if accuracy is not improving
-                if np.mean(np.subtract(self.accs[-10:], self.accs[-11:-1])) < 0.01:
+                if np.abs(np.sum(np.subtract(self.accs[-10:], self.accs[-11:-1]))) < 0.05:
                     print("Breaking the training loop as I am not improving anymore :(")
                     break
 
-            
+
 
     def create_temperature_scaled_model(self, initial_model, temperature):
         temperature_scaled_model = clone_model(initial_model)
@@ -409,15 +426,15 @@ class FedAKD:
 
         self.local_accuracy.append(accs)
         self.local_loss.append(losses)
-        self.global_accuracy.append(np.mean(accs))
-        self.global_loss.append(np.mean(losses))
+        self.accs.append(np.mean(accs))
+        self.losses.append(np.mean(losses))
 
-        return np.mean(losses), np.mean(accs)
+        return self.losses[-1], self.accs[-1]
 
 
     def save_scores(self) : 
         acc_path = join(self.exp_path, 'accuracy' + '.npy')
         loss_path = join(self.exp_path, 'loss' + '.npy')
-        np.save(acc_path, self.global_accuracy)
-        np.save(loss_path, self.global_loss)
+        np.save(acc_path, self.accs)
+        np.save(loss_path, self.losses)
     

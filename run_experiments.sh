@@ -37,6 +37,7 @@ echo "Conda environment: $CONDA_ENV"
 
 
 datasets=("cifar10" "mnist")
+# learning_algorithms=("fedsgd" "fedakd")
 learning_algorithms=("local" "central" "fedsgd" "fedavg" "fedakd")
 dp_types=("dp" "adv_cmp" "rdp")
 dp_epsilon_values=(0.1 1 10 100 1000 2000)
@@ -56,12 +57,12 @@ for dataset in "${datasets[@]}"; do
 done
 
 # Non private learning
-for dataset in "${datasets[@]}"; do
-    for learning_algorithm in "${learning_algorithms[@]}"; do
-        python "$CODE_PATH" "$dataset" --learning_algorithm "$learning_algorithm" --rounds 40 --local_epochs 1 --target_model='nn' --lr 0.01
-        python "$CODE_PATH" "$dataset" --learning_algorithm "$learning_algorithm" --rounds 40 --local_epochs 1 --target_model='nn' --lr 0.001
-    done
-done
+# for dataset in "${datasets[@]}"; do
+#     for learning_algorithm in "${learning_algorithms[@]}"; do
+#         python "$CODE_PATH" "$dataset" --learning_algorithm "$learning_algorithm" --rounds 40 --local_epochs 1 --target_model='nn' --lr 0.01
+#         python "$CODE_PATH" "$dataset" --learning_algorithm "$learning_algorithm" --rounds 40 --local_epochs 1 --target_model='nn' --lr 0.001
+#     done
+# done
 
 
 # python $CODE_PATH $DATASET --learning_algorithm 'fedprox' --rounds 10  --local_epochs 1  --target_model='nn' --dp_epsilon 100 --dp_type 'dp'
