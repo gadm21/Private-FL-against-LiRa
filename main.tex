@@ -108,9 +108,9 @@ Simultaneously, we evaluate the three distinct types of MIAs: Blackbox MIA, Whit
 This paper is structured as follows: Section 2 presents a survey of related works in federated learning, privacy attacks, and differential privacy. Section 3 outlines the methodology and experimental setup we used in our research. In Section 4, we report the results of our experiments, focusing on privacy leakage and the privacy-utility trade-off. Section 5 discusses our findings' implications and the limitations of our study. Finally, Section 6 concludes the paper and suggests potential areas for future research in privacy-conscious federated learning.
 
 %-------------------------------------------------------------------------------
-\section{Background}
+\section{Related Work}
 %-------------------------------------------------------------------------------
-This section provides a comprehensive overview of literature work on the key concepts relevant to our work. 
+This section provides an overview of literature work on the key concepts relevant to our work including federated learning, privacy attacks, and differential privacy. 
 
 \subsection{Federated Learning}
 
@@ -128,17 +128,31 @@ In this paper, we have taken a keen interest in the Likelihood Ratio Inference A
 
 \subsection{Differential Privacy}
 
-As researchers grapple with the privacy threats posed by attacks such as MIA, a potential solution emerges in the form of Differential Privacy. This mathematical framework serves to quantify the privacy afforded by an algorithm, thus providing a measurable standard for privacy protection.
+As researchers grapple with the privacy threats posed by attacks such as MIA, a potential solution emerges in the form of Differential Privacy. This mathematical framework serves to quantify the privacy afforded by an algorithm, thus providing a measurable standard for privacy protection. \cite{carliniSecretSharerEvaluating2019} quantiitavely asseses the risk of attacks that exploit unintentional memorization in generative sequence models using the standard DP definition. The authors of \cite{EvaluatingDifferentiallyPrivate} provide an evaluation of the privacy leakage of different DP variants, including Concentrated Differential Privacy (CDP), Zero Concentrated Differential Privacy (z-CDP), and Renyi Differential Privacy (RDP), in the context of central deep learning training. Whereas, we focus on the evaluation of privacy leakage in the context of FL and explore DP mechanisms to defend against privacy attacks. We consider the standard DP definition (including naive and advanced composition variants) and RDP.
 
 The crux of DP lies in the deliberate introduction of calibrated noise during computational processes. By doing so, DP ensures that the result of a computation remains virtually unaffected, regardless of whether an individual data record is included in the input dataset. This introduces a level of indistinguishability that serves as a privacy buffer, making it significantly harder for attackers to link outputs back to individual inputs.
 
-While DP offers a rigorousprivacy assurance, it doesn't come without its set of challenges. One of the key struggles is managing the inherent trade-off between the level of privacy protection and the utility of the machine learning model, often referred to as the privacy-utility trade-off. In essence, increasing privacy protection through noise addition can adversely impact the performance or 'utility' of the machine learning model.
+While DP offers a rigorous privacy assurance, it comes with drawbacks. One of the key struggles is managing the inherent trade-off between the level of privacy protection ($\epsilon$) and the utility of the machine learning model, often referred to as the privacy-utility trade-off. In essence, increasing privacy protection through noise addition can adversely impact the performance of the machine learning model.
 
-This delicate balance between privacy and utility necessitates a deep understanding of the underlying mechanics and implications of DP. To alleviate the deleterious impact of noise addition on model performance, relaxed versions of DP, such as (epsilon, delta)-Differential Privacy ((ε, δ)-DP) and Rényi Differential Privacy (RDP), have been introduced. These relaxed versions aim to conduct a more granular privacy analysis while curtailing the degradation in utility that standard DP might cause. The degree of privacy protection under these relaxed DP methods is primarily governed by the privacy parameter ε, also known as the 'privacy budget.' By adjusting ε, one can control the extent of noise added to the data, thereby managing the privacy-utility trade-off.
+This delicate balance between privacy and utility necessitates a deep understanding of the underlying mechanics of DP. To alleviate the deleterious impact of noise addition on model performance, relaxed versions of DP, such as ($\epsilon, \delta$)-Differential Privacy ((ε, δ)-DP) \cite{dworkAlgorithmicFoundationsDifferential2014} and Rényi Differential Privacy (RDP) \cite{mironovRenyiDifferentialPrivacy2017}, have been introduced. These relaxed versions provide a tighter privacy analysis while curtailing the degradation in utility that standard DP ($(\epsilon)-DP$) might cause. The degree of privacy protection under these relaxed DP methods is primarily governed by the privacy parameter $\epsilon$, also known as the 'privacy budget.' By adjusting $\epsilon$, the magnitude of noise added to the data is controlled, thereby managing the privacy-utility trade-off.
 
-In our study, we engage with these relaxed versions of DP, particularly (ε, δ)-DP and RDP, exploring their implications in the context of FL. Our research takes into account the intricate relationship between the privacy protection level offered by these DP mechanisms and the success rate of an attack. The objective is to better comprehend the privacy leakage in FL models under the LiRA, shedding light on potential avenues for bolstering privacy protection in this realm.
+Rahman et al. \cite{rahmanmia} studies the impact of MIA on DP-trained models. The authors concluded that Differentially private deep models can maintain privacy protection against strong adversaries while sacrificing model utility, but when they achieve acceptable utility, they may exhibit moderate vulnerability to membership inference attacks. However, they do not evaluate the privacy leakage of DP variants against these attacks nor consider the impact of DP on FL models. 
 
-In conclusion, Federated Learning, privacy attacks like MIAs, and Differential Privacy collectively form a complex web of interconnected themes that underpin our research. By dissecting these concepts, we hope to arrive at a nuanced understanding of the privacy challenges in FL and contribute to the development of robust, privacy-preserving mechanisms in distributed machine learning.
+The main contribution of this work is to quantify the intricate relationship between the privacy protection level offered by these DP mechanisms and the success rate of the LiRa attack in the context of central and FL. The objective is to better comprehend the privacy leakage in FL models under the LiRA, and how DP mechanisms can be leveraged to mitigate this leakage. We consider the standard DP definition (including naive and advanced composition variants) and RDP.
+
+%  a table compares the focus of our paper relative to other similar works 
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|}
+    \hline
+    \textbf{Paper} & \textbf{Learning Algorithm} & \textbf{Privacy Attacks} & \textbf{Defense Mechanisms} \\ \hline
+    \cite{rahmanmia} & Central, FedAKD, FedAvg & White Box MIA, Black Box MIA, LiRA & ($\epsilon, \delta$)-DP, RDP, CDP, zCDP \\ \hline
+    \cite{EvaluatingDifferentiallyPrivate} & \checkmark & \checkmark & \checkmark \\ \hline
+    \textbf{ours} & \checkmark & \checkmark & \checkmark \\ \hline
+    \end{tabular}
+    \end{table}
+    
 
 
 %-------------------------------------------------------------------------------
