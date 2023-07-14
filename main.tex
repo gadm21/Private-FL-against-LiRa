@@ -56,6 +56,8 @@
 % to be able to draw some self-contained figs
 \usepackage{tikz}
 \usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
 
 
 
@@ -97,9 +99,9 @@ Federated learning (FL), as a type of distributed machine learning, is capable o
 
 Emerging as a compelling paradigm, Federated Learning (FL) endorses a cooperative, distributed machine learning strategy that offers a robust privacy protection mechanism, facilitating training without the need for raw data exchange across clients. Notwithstanding, FL is not immune to privacy invasion as the model updates can be exploited to deduce information, highlighting potential susceptibility to attacks like Membership Inference Attacks (MIA).
 
-MIA represents a form of cyber threat wherein an adversary can deduce whether specific inputs were part of a model's training dataset, a fact which underlines the persistent need for rigorous privacy measures. Recognizing this, Differential Privacy (DP), a principled privacy-preserving methodology, is commonly deployed in the context of FL. It curtails the risk of privacy breaches by introducing calibrated randomness in the model's learning process. DP hinges on a parameter, ε, known as the 'privacy budget', which serves as an indicator of the maximum permissible privacy loss.
+MIA represents a form of cyber threat wherein an adversary can deduce whether specific inputs were part of a model's training dataset, a fact that underlines the persistent need for rigorous privacy measures. Recognizing this, Differential Privacy (DP), a principled privacy-preserving methodology, is commonly deployed in the context of FL. It curtails the risk of privacy breaches by introducing calibrated randomness in the model's learning process. DP hinges on a parameter, ε, known as the 'privacy budget', which serves as an indicator of the maximum permissible privacy loss.
 
-However, the integration of DP in FL is not devoid of challenges. One primary concern is the adverse effect of the DP-introduced noise on model performance, which can compromise the accuracy of the model. Consequently, researchers are exploring relaxed versions of DP such as standard DP, formally (epsilon, delta)-DP, and Rényi Differential Privacy (RDP). These relaxations allow for a more focused privacy analysis while introducing less noise to maintain equivalent privacy levels.
+One primary concern in the integration of DP in FL is the adverse effect of the DP-introduced noise on model performance, which can compromise the accuracy of the model. Consequently, researchers are exploring relaxed versions of DP such as standard DP, formally (epsilon, delta)-DP, and Rényi Differential Privacy (RDP). These relaxations allow for a more focused privacy analysis while introducing less noise to maintain equivalent privacy levels.
 
 Still, existing challenges include comprehending the privacy-utility tradeoff in FL and quantifying the real-world privacy leakage. Our research is designed to address these gaps, focusing on the privacy leakage measurement in FL models under the Likelihood Ratio Inference Attack (LiRA), a potent form of MIA. We also study the relationship between the success rate of an attack and the privacy protection level provided by (epsilon, delta)-DP and RDP.
 
@@ -141,19 +143,26 @@ Rahman et al. \cite{rahmanmia} studies the impact of MIA on DP-trained models. T
 The main contribution of this work is to quantify the intricate relationship between the privacy protection level offered by these DP mechanisms and the success rate of the LiRa attack in the context of central and FL. The objective is to better comprehend the privacy leakage in FL models under the LiRA, and how DP mechanisms can be leveraged to mitigate this leakage. We consider the standard DP definition (including naive and advanced composition variants) and RDP.
 
 %  a table compares the focus of our paper relative to other similar works 
+% Please add the following required packages to your document preamble:
+% \usepackage{graphicx}
 
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|l|l|}
-    \hline
-    \textbf{Paper} & \textbf{Learning Algorithm} & \textbf{Privacy Attacks} & \textbf{Defense Mechanisms} \\ \hline
-    \cite{rahmanmia} & Central, FedAKD, FedAvg & White Box MIA, Black Box MIA, LiRA & ($\epsilon, \delta$)-DP, RDP, CDP, zCDP \\ \hline
-    \cite{EvaluatingDifferentiallyPrivate} & \checkmark & \checkmark & \checkmark \\ \hline
-    \textbf{ours} & \checkmark & \checkmark & \checkmark \\ \hline
-    \end{tabular}
-    \end{table}
-    
-
+\begin{table*}[ht]
+\centering
+\caption{A comparison of the contributions of our work relative to related work}
+\label{tab:compare_related_work}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|ll|lll|llll|}
+\hline
+\textbf{Paper} & \multicolumn{2}{l|}{\textbf{Learning Algorithm}} & \multicolumn{3}{l|}{\textbf{Privacy Attacks}} & \multicolumn{4}{l|}{\textbf{Defense Mechanisms}} \\
+               & \textbf{Central} & \textbf{Federated Learning} \cite{mcmahanCommunicationefficientLearningDeep2017, li2019fedmd} & \textbf{White Box MIA} & \textbf{Black Box MIA} & \textbf{LiRa} & \textbf{($\epsilon, \delta$)-DP} & \textbf{CDP} & \textbf{Z-CDP} & \textbf{RDP} \\
+\hline
+\cite{EvaluatingDifferentiallyPrivate}  & \checkmark &     & \checkmark & \checkmark &     & \checkmark & \checkmark & \checkmark & \checkmark \\
+\cite{rahmanmia}  & \checkmark &     &            & \checkmark &     & \checkmark &            &            &            \\
+\textbf{ours} & \checkmark & \checkmark &            &            & \checkmark &            &            &            & \checkmark \\
+\hline
+\end{tabular}%
+}
+\end{table*}
 
 %-------------------------------------------------------------------------------
 \section{Federated Learning}
